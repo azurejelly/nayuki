@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/azurejelly/nayuki/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -13,11 +14,7 @@ func (c *PingCommand) Command() *discordgo.ApplicationCommand {
 	}
 }
 
-func (c *PingCommand) Run(s *discordgo.Session, i *discordgo.InteractionCreate) (err error) {
-	return s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: ":ping_pong: Pong!",
-		},
-	})
+func (c *PingCommand) Run(s *discordgo.Session, event *discordgo.InteractionCreate) (err error) {
+	i := event.Interaction
+	return utils.ReplyEphemeral(s, i, ":ping_pong: Pong!")
 }

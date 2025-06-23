@@ -17,7 +17,7 @@ func (c *PingCommand) Run(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	return s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "Pong!",
+			Content: ":ping_pong: Pong!",
 		},
 	})
 }

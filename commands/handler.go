@@ -9,4 +9,5 @@ type Command interface {
 
 var Commands = []Command{
 	&PingCommand{},
+	&SetChannelCommand{},
 }

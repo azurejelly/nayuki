@@ -60,7 +60,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	for _, c := range commands.Commands {
 		name := c.Command().Name
-		if c.Command().Name == name {
+		if name == i.ApplicationCommandData().Name {
 			log.Printf("user '%s' has executed '%s'", i.Member.User.Username, name)
 			err := c.Run(s, i)
 			if err != nil {

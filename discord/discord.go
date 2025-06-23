@@ -7,13 +7,11 @@ import (
 	"syscall"
 
 	"github.com/azurejelly/nayuki/commands"
+	"github.com/azurejelly/nayuki/config"
 	"github.com/bwmarrin/discordgo"
-	"github.com/zekrotja/ken"
-	"github.com/zekrotja/ken/store"
 )
 
 var session *discordgo.Session
-var k *ken.Ken
 
 func Init(token string) {
 	session, err := discordgo.New("Bot " + token)
@@ -29,19 +27,18 @@ func Init(token string) {
 
 	defer session.Close()
 
-	k, err := ken.New(session, ken.Options{
-		CommandStore: store.NewDefault(),
-	})
-
-	if err != nil {
-		log.Fatal("failed to create ken instance: ", err)
-		return
+	log.Printf("registering %d command(s)\n", len(commands.Commands))
+	for _, c := range commands.Commands {
+		cmd := c.Command()
+		_, err := session.ApplicationCommandCreate(session.State.User.ID, config.GetGuildId(), cmd)
+		if err != nil {
+			log.Fatalf("failed to register command %s", cmd.Name)
+			log.Fatalln(err)
+			return
+		}
 	}
 
-	k.RegisterCommands(new(commands.PingCommand))
-
-	defer k.Unregister()
-
+	session.AddHandler(interactionCreate)
 	log.Println("discord connection was successful")
 
 	// Run until we detect a stop signal
@@ -56,6 +53,27 @@ func GetSession() *discordgo.Session {
 	return session
 }
 
-func GetKen() *ken.Ken {
-	return k
+func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	if i.Type != discordgo.InteractionApplicationCommand {
+		return
+	}
+
+	for _, c := range commands.Commands {
+		name := c.Command().Name
+		if c.Command().Name == name {
+			log.Printf("user '%s' has executed '%s'", i.Member.User.Username, name)
+			err := c.Run(s, i)
+			if err != nil {
+				log.Printf("an error occurred while running %s: %s", name, err)
+
+				// we don't really care if this fails to be honest
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "An internal error has occured.",
+					},
+				})
+			}
+		}
+	}
 }

@@ -1,8 +1,15 @@
 package commands
 
 import (
+	"fmt"
+	"log"
+
+	"github.com/azurejelly/nayuki/database"
+	"github.com/azurejelly/nayuki/models"
 	"github.com/azurejelly/nayuki/utils"
 	"github.com/bwmarrin/discordgo"
+	embed "github.com/clinet/discordgo-embed"
+	"github.com/kamva/mgm/v3"
 )
 
 type SuggestCommand struct{}
@@ -13,13 +20,13 @@ func (c *SuggestCommand) Command() *discordgo.ApplicationCommand {
 		Description: "Make a suggestion to the administrators of this Discord server.",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
-				Type:        discordgo.ApplicationCommandOptionChannel,
+				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "title",
 				Description: "The title for this suggestion.",
 				Required:    true,
 			},
 			{
-				Type:        discordgo.ApplicationCommandOptionChannel,
+				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "description",
 				Description: "The description for this suggestion.",
 				Required:    true,
@@ -30,5 +37,66 @@ func (c *SuggestCommand) Command() *discordgo.ApplicationCommand {
 
 func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionCreate) (err error) {
 	i := event.Interaction
-	return utils.ReplyEphemeral(s, i, ":no_entry: Not implemented")
+
+	utils.DeferEphemeral(s, i)
+	server, err := database.GetServer(i.GuildID)
+	if err != nil {
+		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Failed to fetch and/or create server data: ```\n%s\n```", err.Error()))
+	}
+
+	if server == nil || server.Channel == "" {
+		return utils.UpdateDeferredEphemeral(s, i, ":x: Sorry, this server isn't accepting suggestions at the moment.")
+	}
+
+	channel := server.Channel
+	msg, err := s.ChannelMessageSend(channel, "A new suggestion is just around the corner!")
+	if err != nil {
+		return utils.UpdateDeferredEphemeral(s, i, ":x: Sorry, this server isn't accepting suggestions at the moment.")
+	}
+
+	title := i.ApplicationCommandData().GetOption("title").StringValue()
+	content := i.ApplicationCommandData().GetOption("description").StringValue()
+
+	if len(title) > 256 {
+		title = title[:256]
+	}
+
+	if len(content) > 4096 {
+		content = content[:4096]
+	}
+
+	suggestion := models.NewSuggestion(event.Member.User.Username, title, content, msg.ID)
+	coll := mgm.Coll(suggestion)
+	err = coll.Create(suggestion)
+
+	if err != nil {
+		s.ChannelMessageDelete(server.Channel, suggestion.Message)
+		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Failed to create suggestion: ```\n%s\n```", err.Error()))
+	}
+
+	embed := embed.NewEmbed()
+	embed.SetTitle(title)
+	embed.SetDescription(content)
+	embed.SetAuthor(i.Member.User.Username, i.Member.User.AvatarURL("128"))
+	embed.SetFooter(fmt.Sprintf("ID: %s", suggestion.ID.Hex()))
+	embed.SetColor(0x5ff5d2)
+
+	s.ChannelMessageEditEmbed(channel, msg.ID, embed.MessageEmbed)
+	s.ChannelMessageEdit(channel, msg.ID, fmt.Sprintf("New suggestion from <@%s>:", i.Member.User.ID))
+	s.MessageReactionAdd(channel, msg.ID, "\u2705") // white check mark
+	s.MessageReactionAdd(channel, msg.ID, "\u274c") // cross mark
+
+	if server.CreateThreads {
+		thread := fmt.Sprintf("%s - %s", suggestion.ID.Hex(), title)
+		if len(thread) > 100 {
+			thread = thread[:100]
+		}
+
+		_, err = s.MessageThreadStart(channel, msg.ID, thread, 1440 /* 1d */)
+		if err != nil {
+			log.Println("failed to create thread: ", err)
+		}
+	}
+
+	return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":white_check_mark: Suggestion created! The ID for it is `%s`.", suggestion.ID.Hex()))
 }

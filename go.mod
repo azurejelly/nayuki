@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/clinet/discordgo-embed v0.0.0-20220113222025-bafe0c917646 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect

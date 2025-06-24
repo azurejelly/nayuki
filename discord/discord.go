@@ -8,6 +8,7 @@ import (
 
 	"github.com/azurejelly/nayuki/commands"
 	"github.com/azurejelly/nayuki/config"
+	"github.com/azurejelly/nayuki/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -67,12 +68,9 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				log.Printf("an error occurred while running %s: %s", name, err)
 
 				// we don't really care if this fails to be honest
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "An internal error has occured.",
-					},
-				})
+				msg := ":x: something went really wrong. please let the bot developers know!"
+				msg += "```\n" + err.Error() + "\n```"
+				utils.Reply(s, i.Interaction, msg)
 			}
 		}
 	}

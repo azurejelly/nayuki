@@ -40,6 +40,31 @@ func (c *ConfigCommand) Command() *discordgo.ApplicationCommand {
 					},
 				},
 			},
+			{
+				Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
+				Name:        "logs",
+				Description: "Configuration for the suggestions logs channel.",
+				Options: []*discordgo.ApplicationCommandOption{
+					{
+						Name:        "get",
+						Description: "Get the current suggestions logs channel for this server.",
+						Type:        discordgo.ApplicationCommandOptionSubCommand,
+					},
+					{
+						Name:        "set",
+						Description: "Set the current suggestions logs channel for this server.",
+						Type:        discordgo.ApplicationCommandOptionSubCommand,
+						Options: []*discordgo.ApplicationCommandOption{
+							{
+								Name:        "channel",
+								Description: "The suggestions logs channel to use for this server.",
+								Type:        discordgo.ApplicationCommandOptionChannel,
+								Required:    true,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -70,6 +95,10 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 				return utils.ReplyEphemeral(s, i, ":no_entry: Only guild text channels can be used as a suggestions channel.")
 			}
 
+			if channel.GuildID != i.GuildID {
+				return utils.ReplyEphemeral(s, i, ":no_entry: Server ID mismatch.")
+			}
+
 			utils.DeferEphemeral(s, i)
 			server := &models.Server{}
 			coll := mgm.Coll(server)
@@ -78,7 +107,7 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 
 			// TODO: find a better way (if any) of checking if this guild has no server data at all
 			if server.Guild == "" {
-				server = models.NewServer(i.GuildID, channel.ID)
+				server = models.NewServer(i.GuildID, channel.ID, "")
 				coll.Create(server)
 			} else {
 				server.Channel = channel.ID

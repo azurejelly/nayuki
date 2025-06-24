@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/azurejelly/nayuki/database"
 	"github.com/azurejelly/nayuki/utils"
@@ -120,6 +121,7 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 			embed.SetAuthor("Suggestion declined.")
 		}
 
+		embed.Timestamp = time.Now().Format(time.RFC3339)
 		s.ChannelMessageSendEmbed(server.LogsChannel, embed.MessageEmbed)
 	}
 

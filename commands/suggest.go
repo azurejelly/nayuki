@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/azurejelly/nayuki/database"
 	"github.com/azurejelly/nayuki/models"
@@ -80,6 +81,7 @@ func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 	embed.SetAuthor(i.Member.User.Username, i.Member.User.AvatarURL("128"))
 	embed.SetFooter(fmt.Sprintf("ID: %s", suggestion.ID.Hex()))
 	embed.SetColor(0x5ff5d2)
+	embed.Timestamp = time.Now().Format(time.RFC3339)
 
 	s.ChannelMessageEditEmbed(channel, msg.ID, embed.MessageEmbed)
 	s.ChannelMessageEdit(channel, msg.ID, fmt.Sprintf("New suggestion from <@%s>:", i.Member.User.ID))

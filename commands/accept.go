@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/azurejelly/nayuki/database"
 	"github.com/azurejelly/nayuki/utils"
@@ -120,6 +121,7 @@ func (c *AcceptCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 			embed.SetAuthor("Suggestion accepted!")
 		}
 
+		embed.Timestamp = time.Now().Format(time.RFC3339)
 		s.ChannelMessageSendEmbed(server.LogsChannel, embed.MessageEmbed)
 	}
 

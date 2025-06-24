@@ -18,7 +18,7 @@ func ReadGitRevision() string {
 				}
 			}
 
-			if setting.Key == "vcs.modified" {
+			if setting.Key == "vcs.modified" && setting.Value == "true" {
 				dirty = true
 			}
 		}

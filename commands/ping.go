@@ -15,6 +15,5 @@ func (c *PingCommand) Command() *discordgo.ApplicationCommand {
 }
 
 func (c *PingCommand) Run(s *discordgo.Session, event *discordgo.InteractionCreate) (err error) {
-	i := event.Interaction
-	return utils.ReplyEphemeral(s, i, ":ping_pong: Pong!")
+	return utils.ReplyEphemeral(s, event.Interaction, ":ping_pong: Pong!")
 }

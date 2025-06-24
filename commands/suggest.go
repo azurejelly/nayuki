@@ -83,8 +83,8 @@ func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 
 	s.ChannelMessageEditEmbed(channel, msg.ID, embed.MessageEmbed)
 	s.ChannelMessageEdit(channel, msg.ID, fmt.Sprintf("New suggestion from <@%s>:", i.Member.User.ID))
-	s.MessageReactionAdd(channel, msg.ID, "\u2705") // white check mark
-	s.MessageReactionAdd(channel, msg.ID, "\u274c") // cross mark
+	s.MessageReactionAdd(channel, msg.ID, "👍") // thumbs up
+	s.MessageReactionAdd(channel, msg.ID, "👎") // thumbs down
 
 	if server.CreateThreads {
 		thread := fmt.Sprintf("%s - %s", suggestion.ID.Hex(), title)

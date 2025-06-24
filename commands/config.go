@@ -12,8 +12,9 @@ type ConfigCommand struct{}
 
 func (c *ConfigCommand) Command() *discordgo.ApplicationCommand {
 	return &discordgo.ApplicationCommand{
-		Name:        "config",
-		Description: "Sets the suggestions channel that should be used in this server.",
+		Name:                     "config",
+		Description:              "Sets the suggestions channel that should be used in this server.",
+		DefaultMemberPermissions: utils.Ptr(int64(discordgo.PermissionManageMessages)),
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommandGroup,

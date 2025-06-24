@@ -11,4 +11,6 @@ var Commands = []Command{
 	&PingCommand{},
 	&ConfigCommand{},
 	&SuggestCommand{},
+	&AcceptCommand{},
+	&DeclineCommand{},
 }

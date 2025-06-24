@@ -75,3 +75,24 @@ func SaveServer(s *models.Server) error {
 	coll := mgm.Coll(s)
 	return coll.Update(s)
 }
+
+func FindSuggestion(id string) (*models.Suggestion, error) {
+	s := &models.Suggestion{}
+	coll := mgm.Coll(s)
+	err := coll.FindByID(id, s)
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return s, nil
+}
+
+func DeleteSuggestion(s *models.Suggestion) error {
+	coll := mgm.Coll(s)
+	return coll.Delete(s)
+}

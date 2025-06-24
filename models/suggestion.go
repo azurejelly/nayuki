@@ -6,6 +6,7 @@ type Suggestion struct {
 	mgm.DefaultModel `bson:",inline"`
 
 	Author      string       `json:"author_id" bson:"author_id"`
+	AuthorName  string       `json:"author_name" bson:"author_name"`
 	Title       string       `json:"title" bson:"title"`
 	Content     string       `json:"content" bson:"content"`
 	Channel     string       `json:"channel_id" bson:"channel_id"`
@@ -13,12 +14,13 @@ type Suggestion struct {
 	Attachments []Attachment `json:"attachments" bson:"attachments"`
 }
 
-func NewSuggestion(author string, title string, content string, channel string, message string) *Suggestion {
+func NewSuggestion(author string, authorName string, title string, content string, channel string, message string) *Suggestion {
 	return &Suggestion{
-		Author:  author,
-		Title:   title,
-		Content: content,
-		Channel: channel,
-		Message: message,
+		Author:     author,
+		AuthorName: authorName,
+		Title:      title,
+		Content:    content,
+		Channel:    channel,
+		Message:    message,
 	}
 }

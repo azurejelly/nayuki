@@ -13,4 +13,5 @@ var Commands = []Command{
 	&SuggestCommand{},
 	&AcceptCommand{},
 	&DeclineCommand{},
+	&InfoCommand{},
 }

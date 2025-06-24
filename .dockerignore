@@ -1,0 +1,13 @@
+.gitignore
+.gitattributes
+*.DS_Store
+build/
+.env.example
+*.env
+*.md
+.github/
+*.exe
+desktop.ini
+docker-compose.yml
+Dockerfile
+nayuki

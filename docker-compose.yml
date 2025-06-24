@@ -1,0 +1,20 @@
+services:
+  bot:
+    image: azurejelly/nayuki:latest
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - "GUILD_ID"
+      - "TOKEN"
+      - "MONGO_URI=mongodb://database:27017/nayuki"
+      - "MONGO_DATABASE=nayuki"
+  database:
+    image: mongo:latest
+    restart: unless-stopped
+    volumes:
+      - "mongo-data:/data/db"
+
+volumes:
+  mongo-data: {}

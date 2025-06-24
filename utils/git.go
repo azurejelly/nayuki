@@ -28,5 +28,9 @@ func ReadGitRevision() string {
 		}
 	}
 
+	if hash == "" {
+		return "unknown"
+	}
+
 	return hash
 }

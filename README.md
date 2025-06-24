@@ -54,4 +54,20 @@ $ go build main.go -o nayuki
 $ ./nayuki
 ```
 
-have fun!
+## with docker
+
+clone the repository:
+
+```shell
+$ git clone https://github.com/azurejelly/nayuki
+$ cd nayuki/
+```
+
+copy `.env.example` to `.env` and modify `TOKEN` and `GUILD_ID` (if needed):
+
+```shell
+$ cp .env.example .env
+$ code .env # or just use your preferred code editor (e.g. nano, vim)
+```
+
+the existing [docker compose configuration](./docker-compose.yml) will automatically spin up a mongodb server for the bot to use. you'll need to edit it if you want to use an existing database.

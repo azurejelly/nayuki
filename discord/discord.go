@@ -8,6 +8,7 @@ import (
 
 	"github.com/azurejelly/nayuki/commands"
 	"github.com/azurejelly/nayuki/config"
+	"github.com/azurejelly/nayuki/events"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -20,8 +21,8 @@ func Init(token string) {
 		return
 	}
 
-	session.AddHandler(interactionCreate)
-	session.AddHandler(ready)
+	session.AddHandler(events.InteractionCreate)
+	session.AddHandler(events.Ready)
 
 	if err := session.Open(); err != nil {
 		log.Fatal("failed to open discord session: ", err)
@@ -53,26 +54,4 @@ func Init(token string) {
 
 func GetSession() *discordgo.Session {
 	return session
-}
-
-func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	if i.Type != discordgo.InteractionApplicationCommand {
-		return
-	}
-
-	for _, c := range commands.Commands {
-		name := c.Command().Name
-		if name == i.ApplicationCommandData().Name {
-			log.Printf("user '%s' has executed '%s'", i.Member.User.Username, name)
-			err := c.Run(s, i)
-			if err != nil {
-				log.Printf("an error occurred while running %s: %s", name, err)
-			}
-		}
-	}
-}
-
-func ready(s *discordgo.Session, event *discordgo.Ready) {
-	log.Printf("logged in as %s (id: %s)\n", s.State.User.Username, s.State.User.ID)
-	s.UpdateWatchStatus(0, "ur cool suggestions")
 }

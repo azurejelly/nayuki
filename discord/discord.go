@@ -42,7 +42,7 @@ func Init(token string) {
 		}
 	}
 
-	log.Println("discord connection was successful. press ctrl+c to exit.")
+	log.Println("finished registering commands")
 
 	// Run until we detect a stop signal
 	sc := make(chan os.Signal, 1)

@@ -65,12 +65,12 @@ func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 		content = content[:4096]
 	}
 
-	suggestion := models.NewSuggestion(event.Member.User.ID, title, content, msg.ID)
+	suggestion := models.NewSuggestion(event.Member.User.ID, title, content, channel, msg.ID)
 	coll := mgm.Coll(suggestion)
 	err = coll.Create(suggestion)
 
 	if err != nil {
-		s.ChannelMessageDelete(server.Channel, suggestion.Message)
+		s.ChannelMessageDelete(channel, suggestion.Message)
 		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Failed to create suggestion: ```\n%s\n```", err.Error()))
 	}
 

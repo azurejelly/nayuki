@@ -20,6 +20,9 @@ func Init(token string) {
 		return
 	}
 
+	session.AddHandler(interactionCreate)
+	session.AddHandler(ready)
+
 	if err := session.Open(); err != nil {
 		log.Fatal("failed to open discord session: ", err)
 		return
@@ -38,8 +41,7 @@ func Init(token string) {
 		}
 	}
 
-	session.AddHandler(interactionCreate)
-	log.Println("discord connection was successful")
+	log.Println("discord connection was successful. press ctrl+c to exit.")
 
 	// Run until we detect a stop signal
 	sc := make(chan os.Signal, 1)
@@ -68,4 +70,9 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			}
 		}
 	}
+}
+
+func ready(s *discordgo.Session, event *discordgo.Ready) {
+	log.Printf("logged in as %s (id: %s)\n", s.State.User.Username, s.State.User.ID)
+	s.UpdateWatchStatus(0, "ur cool suggestions")
 }

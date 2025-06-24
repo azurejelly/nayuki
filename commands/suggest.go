@@ -65,7 +65,7 @@ func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 		content = content[:4096]
 	}
 
-	suggestion := models.NewSuggestion(event.Member.User.Username, title, content, msg.ID)
+	suggestion := models.NewSuggestion(event.Member.User.ID, title, content, msg.ID)
 	coll := mgm.Coll(suggestion)
 	err = coll.Create(suggestion)
 

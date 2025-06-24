@@ -70,4 +70,10 @@ $ cp .env.example .env
 $ code .env # or just use your preferred code editor (e.g. nano, vim)
 ```
 
+and finally, start the stack:
+
+```shell
+$ docker compose up -d
+```
+
 the existing [docker compose configuration](./docker-compose.yml) will automatically spin up a mongodb server for the bot to use. you'll need to edit it if you want to use an existing database.

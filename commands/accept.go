@@ -28,6 +28,7 @@ func (c *AcceptCommand) Command() *discordgo.ApplicationCommand {
 	}
 }
 
+// FIXME: duplicate code
 func (c *AcceptCommand) Run(s *discordgo.Session, event *discordgo.InteractionCreate) error {
 	i := event.Interaction
 	id := i.ApplicationCommandData().GetOption("id").StringValue()

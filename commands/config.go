@@ -38,6 +38,11 @@ func (c *ConfigCommand) Command() *discordgo.ApplicationCommand {
 							},
 						},
 					},
+					{
+						Name:        "clear",
+						Description: "Clears the selected suggestions channel for this server.",
+						Type:        discordgo.ApplicationCommandOptionSubCommand,
+					},
 				},
 			},
 			{
@@ -105,7 +110,8 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 
 	switch group {
 	case "channel", "logs":
-		if action.Name == "get" {
+		switch action.Name {
+		case "get":
 			msg := ""
 
 			if group == "logs" {
@@ -123,7 +129,24 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 			}
 
 			return utils.UpdateDeferredEphemeral(s, i, msg)
-		} else {
+		case "clear":
+			msg := ""
+
+			if group == "logs" {
+				server.LogsChannel = ""
+				msg = ":white_check_mark: Logging channel cleared."
+			} else {
+				server.Channel = ""
+				msg = ":white_check_mark: Suggestions channel cleared."
+			}
+
+			err := database.SaveServer(server)
+			if err != nil {
+				msg = fmt.Sprintf(":x: Could not update server data: \n```\n%s\n```", err.Error())
+			}
+
+			return utils.UpdateDeferredEphemeral(s, i, msg)
+		default:
 			channel := action.GetOption("channel").ChannelValue(s)
 			if channel.Type != discordgo.ChannelTypeGuildText {
 				return utils.UpdateDeferredEphemeral(s, i, ":x: You must provide a text channel.")

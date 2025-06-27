@@ -13,14 +13,14 @@ import (
 
 func Init(uri string, db string) {
 	if uri == "" {
-		log.Fatal("no mongodb uri was set. unable to continue.")
+		log.Fatalln("no mongodb uri was set. unable to continue.")
 		return
 	}
 
 	err := mgm.SetDefaultConfig(nil, db, options.Client().ApplyURI(uri))
 
 	if err != nil {
-		log.Fatal("failed to connect to MongoDB: ", err)
+		log.Fatalln("failed to connect to MongoDB: ", err)
 		return
 	}
 

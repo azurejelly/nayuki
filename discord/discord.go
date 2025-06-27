@@ -17,7 +17,7 @@ var session *discordgo.Session
 func Init(token string) {
 	session, err := discordgo.New("Bot " + token)
 	if err != nil {
-		log.Fatal("failed to initialize discord session: ", err)
+		log.Fatalln("failed to initialize discord session: ", err)
 		return
 	}
 
@@ -25,18 +25,18 @@ func Init(token string) {
 	session.AddHandler(events.Ready)
 
 	if err := session.Open(); err != nil {
-		log.Fatal("failed to open discord session: ", err)
+		log.Fatalln("failed to open discord session: ", err)
 		return
 	}
 
 	defer session.Close()
 
-	log.Printf("registering %d command(s)\n", len(commands.Commands))
-	for _, c := range commands.Commands {
+	log.Printf("registering %d command(s)\n", len(commands.List))
+	for _, c := range commands.List {
 		cmd := c.Command()
 		_, err := session.ApplicationCommandCreate(session.State.User.ID, config.GetGuildId(), cmd)
 		if err != nil {
-			log.Fatalf("failed to register command %s", cmd.Name)
+			log.Fatalf("failed to register command %s\n", cmd.Name)
 			log.Fatalln(err)
 			return
 		}

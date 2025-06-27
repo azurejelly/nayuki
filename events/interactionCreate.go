@@ -12,7 +12,7 @@ func InteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	for _, c := range commands.Commands {
+	for _, c := range commands.List {
 		name := c.Command().Name
 		if name == i.ApplicationCommandData().Name {
 			log.Printf("user '%s' has executed '%s'", i.Member.User.Username, name)

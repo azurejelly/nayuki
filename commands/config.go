@@ -103,10 +103,10 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 	group := opt[0].Name
 	action := opt[0].Options[0]
 
-	utils.DeferEphemeral(s, i)
+	utils.Defer(s, i)
 	server, err := database.GetOrCreateServer(i.GuildID)
 	if err != nil {
-		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Failed to fetch and/or create server data: ```\n%s\n```", err.Error()))
+		return utils.UpdateDeferred(s, i, fmt.Sprintf(":x: Failed to fetch and/or create server data: ```\n%s\n```", err.Error()))
 	}
 
 	switch group {
@@ -129,7 +129,7 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 				}
 			}
 
-			return utils.UpdateDeferredEphemeral(s, i, msg)
+			return utils.UpdateDeferred(s, i, msg)
 		case "clear":
 			msg := ""
 
@@ -146,15 +146,15 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 				msg = fmt.Sprintf(":x: Could not update server data: \n```\n%s\n```", err.Error())
 			}
 
-			return utils.UpdateDeferredEphemeral(s, i, msg)
+			return utils.UpdateDeferred(s, i, msg)
 		default:
 			channel := action.GetOption("channel").ChannelValue(s)
 			if channel.Type != discordgo.ChannelTypeGuildText {
-				return utils.UpdateDeferredEphemeral(s, i, ":x: You must provide a text channel.")
+				return utils.UpdateDeferred(s, i, ":x: You must provide a text channel.")
 			}
 
 			if channel.GuildID != i.GuildID {
-				return utils.UpdateDeferredEphemeral(s, i, ":x: Server ID mismatch.")
+				return utils.UpdateDeferred(s, i, ":x: Server ID mismatch.")
 			}
 
 			msg := ""
@@ -172,7 +172,7 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 				msg = fmt.Sprintf(":x: Failed to save new server data into database: ```\n%s\n```", err.Error())
 			}
 
-			return utils.UpdateDeferredEphemeral(s, i, msg)
+			return utils.UpdateDeferred(s, i, msg)
 		}
 	case "threads":
 		msg := ""
@@ -186,20 +186,20 @@ func (c *ConfigCommand) Run(s *discordgo.Session, event *discordgo.InteractionCr
 			server.CreateThreads = false
 		case "status":
 			if server.CreateThreads {
-				return utils.UpdateDeferredEphemeral(s, i, ":information_source: Thread creation for suggestions is currently **enabled**.")
+				return utils.UpdateDeferred(s, i, ":information_source: Thread creation for suggestions is currently **enabled**.")
 			} else {
-				return utils.UpdateDeferredEphemeral(s, i, ":information_source: Thread creation for suggestions is currently **disabled**.")
+				return utils.UpdateDeferred(s, i, ":information_source: Thread creation for suggestions is currently **disabled**.")
 			}
 		}
 
 		err = database.SaveServer(server)
 		if err != nil {
 			msg = fmt.Sprintf(":x: Failed to save server data into database: ```\n%s\n```", err.Error())
-			return utils.UpdateDeferredEphemeral(s, i, msg)
+			return utils.UpdateDeferred(s, i, msg)
 		}
 
-		return utils.UpdateDeferredEphemeral(s, i, msg)
+		return utils.UpdateDeferred(s, i, msg)
+	default:
+		return utils.UpdateDeferred(s, i, ":x: Not implemented")
 	}
-
-	return nil
 }

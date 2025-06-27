@@ -4,14 +4,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func Reply(s *discordgo.Session, i *discordgo.Interaction, str string) error {
-	return s.InteractionRespond(i, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: str,
-		},
-	})
-}
+const (
+	MAX_TITLE_LENGTH       = 256
+	MAX_DESCRIPTION_LENGTH = 4096
+)
 
 func ReplyEmbed(s *discordgo.Session, i *discordgo.Interaction, embed *discordgo.MessageEmbed) error {
 	return s.InteractionRespond(i, &discordgo.InteractionResponse{
@@ -35,12 +31,6 @@ func ReplyEphemeral(s *discordgo.Session, i *discordgo.Interaction, str string) 
 func Defer(s *discordgo.Session, i *discordgo.Interaction) error {
 	return s.InteractionRespond(i, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
-}
-
-func DeferEphemeral(s *discordgo.Session, i *discordgo.Interaction) error {
-	return s.InteractionRespond(i, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: discordgo.MessageFlagsEphemeral,
 		},
@@ -50,16 +40,29 @@ func DeferEphemeral(s *discordgo.Session, i *discordgo.Interaction) error {
 func UpdateDeferred(s *discordgo.Session, i *discordgo.Interaction, str string) error {
 	_, err := s.FollowupMessageCreate(i, false, &discordgo.WebhookParams{
 		Content: str,
+		Flags:   discordgo.MessageFlagsEphemeral,
 	})
 
 	return err
 }
 
-func UpdateDeferredEphemeral(s *discordgo.Session, i *discordgo.Interaction, str string) error {
-	_, err := s.FollowupMessageCreate(i, false, &discordgo.WebhookParams{
-		Content: str,
-		Flags:   discordgo.MessageFlagsEphemeral,
-	})
+func CountReactions(msg *discordgo.Message, name string, ignoreBot ...bool) int {
+	counter := 0
 
-	return err
+	if msg == nil {
+		return counter
+	}
+
+	for _, r := range msg.Reactions {
+		if r.Emoji.Name == name {
+			counter += r.Count
+			break
+		}
+	}
+
+	if counter > 0 && len(ignoreBot) > 0 && ignoreBot[0] {
+		counter--
+	}
+
+	return counter
 }

@@ -33,26 +33,21 @@ func (c *DeclineCommand) Command() *discordgo.ApplicationCommand {
 func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionCreate) error {
 	i := event.Interaction
 	id := i.ApplicationCommandData().GetOption("id").StringValue()
+	utils.Defer(s, i)
 
-	utils.DeferEphemeral(s, i)
 	suggestion, err := database.FindSuggestion(id)
-
-	if err != nil {
-		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Failed to fetch suggestion by ID: \n```\n%s\n```", err.Error()))
-	}
-
-	if suggestion == nil {
-		return utils.UpdateDeferredEphemeral(s, i, ":x: Could not find a suggestion with that ID.")
+	if err != nil || suggestion == nil {
+		return utils.UpdateDeferred(s, i, ":x: Could not find a suggestion with that ID.")
 	}
 
 	server, err := database.GetOrCreateServer(i.GuildID)
 	if err != nil {
-		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Failed to fetch and/or create server data: ```\n%s\n```", err.Error()))
+		return utils.UpdateDeferred(s, i, fmt.Sprintf(":x: Failed to fetch and/or create server data: ```\n%s\n```", err.Error()))
 	}
 
 	err = database.DeleteSuggestion(suggestion)
 	if err != nil {
-		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Could not delete suggestion from database: ```\n%s\n```", err.Error()))
+		return utils.UpdateDeferred(s, i, fmt.Sprintf(":x: Could not delete suggestion from database: ```\n%s\n```", err.Error()))
 	}
 
 	result := ":white_check_mark: Suggestion declined."
@@ -62,18 +57,13 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 	if err != nil {
 		result = fmt.Sprintf(":warning: The suggestion was declined, but the original message could not be fetched:\n```\n%s\n```", err.Error())
 	} else {
-		for _, r := range msg.Reactions {
-			if r.Emoji.Name == "👍" {
-				likes += (r.Count - 1) // substract 1 since the bot always reacts once
-			}
+		// Count likes and dislikes in the original message
+		likes = utils.CountReactions(msg, "👍", true)
+		dislikes = utils.CountReactions(msg, "👎", true)
 
-			if r.Emoji.Name == "👎" {
-				dislikes += (r.Count - 1) // substract 1 since the bot always reacts once
-			}
-		}
-
+		// Lock the original discussion thread, if available
 		if msg.Thread != nil {
-			_, err = s.ChannelEditComplex(msg.Thread.ID, &discordgo.ChannelEdit{
+			_, err := s.ChannelEditComplex(msg.Thread.ID, &discordgo.ChannelEdit{
 				Locked:   utils.Ptr(true),
 				Archived: utils.Ptr(true),
 			})
@@ -84,6 +74,7 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 		}
 	}
 
+	// Delete the original message
 	err = s.ChannelMessageDelete(suggestion.Channel, suggestion.Message)
 	if err != nil {
 		result = fmt.Sprintf(":warning: The suggestion was declined, but the original message couldn't be deleted: \n```\n%s\n```", err)
@@ -92,16 +83,8 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 
 	// TODO: make the embed a bit better
 	if server.LogsChannel != "" {
-		title := suggestion.Title
-		content := suggestion.Content
-
-		if len(title) > 256 {
-			title = title[:256]
-		}
-
-		if len(content) > 4096 {
-			content = content[:4096]
-		}
+		title := utils.Truncate(suggestion.Title, utils.MAX_TITLE_LENGTH)
+		content := utils.Truncate(suggestion.Content, utils.MAX_DESCRIPTION_LENGTH)
 
 		embed := embed.NewEmbed()
 		embed.SetTitle(title)
@@ -116,7 +99,7 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 
 		u, _ := s.User(suggestion.Author)
 		if u != nil {
-			embed.SetAuthor("Suggestion declined.", u.AvatarURL("1024"))
+			embed.SetAuthor("Suggestion declined.", u.AvatarURL("128"))
 		} else {
 			embed.SetAuthor("Suggestion declined.")
 		}
@@ -125,5 +108,5 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 		s.ChannelMessageSendEmbed(server.LogsChannel, embed.MessageEmbed)
 	}
 
-	return utils.UpdateDeferredEphemeral(s, i, result)
+	return utils.UpdateDeferred(s, i, result)
 }

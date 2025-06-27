@@ -39,32 +39,25 @@ func (c *SuggestCommand) Command() *discordgo.ApplicationCommand {
 func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionCreate) (err error) {
 	i := event.Interaction
 
-	utils.DeferEphemeral(s, i)
+	utils.Defer(s, i)
 	server, err := database.GetServer(i.GuildID)
 	if err != nil {
-		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Failed to fetch and/or create server data: ```\n%s\n```", err.Error()))
+		return utils.UpdateDeferred(s, i, fmt.Sprintf(":x: Failed to fetch and/or create server data: ```\n%s\n```", err.Error()))
 	}
 
 	if server == nil || server.Channel == "" {
-		return utils.UpdateDeferredEphemeral(s, i, ":x: Sorry, this server isn't accepting suggestions at the moment.")
+		return utils.UpdateDeferred(s, i, ":x: Sorry, this server isn't accepting suggestions at the moment.")
 	}
 
 	channel := server.Channel
 	msg, err := s.ChannelMessageSend(channel, "A new suggestion is just around the corner!")
 	if err != nil {
-		return utils.UpdateDeferredEphemeral(s, i, ":x: Sorry, this server isn't accepting suggestions at the moment.")
+		return utils.UpdateDeferred(s, i, ":x: Sorry, this server isn't accepting suggestions at the moment.")
 	}
 
-	title := i.ApplicationCommandData().GetOption("title").StringValue()
-	content := i.ApplicationCommandData().GetOption("description").StringValue()
-
-	if len(title) > 256 {
-		title = title[:256]
-	}
-
-	if len(content) > 4096 {
-		content = content[:4096]
-	}
+	data := i.ApplicationCommandData()
+	title := utils.Truncate(data.GetOption("title").StringValue(), utils.MAX_TITLE_LENGTH)
+	content := utils.Truncate(data.GetOption("description").StringValue(), utils.MAX_DESCRIPTION_LENGTH)
 
 	suggestion := models.NewSuggestion(event.Member.User.ID, event.Member.User.Username, title, content, channel, msg.ID)
 	coll := mgm.Coll(suggestion)
@@ -72,7 +65,7 @@ func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 
 	if err != nil {
 		s.ChannelMessageDelete(channel, suggestion.Message)
-		return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":x: Failed to create suggestion: ```\n%s\n```", err.Error()))
+		return utils.UpdateDeferred(s, i, fmt.Sprintf(":x: Failed to create suggestion: ```\n%s\n```", err.Error()))
 	}
 
 	embed := embed.NewEmbed()
@@ -100,5 +93,5 @@ func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 		}
 	}
 
-	return utils.UpdateDeferredEphemeral(s, i, fmt.Sprintf(":white_check_mark: Suggestion created! The ID for it is `%s`.", suggestion.ID.Hex()))
+	return utils.UpdateDeferred(s, i, fmt.Sprintf(":white_check_mark: Suggestion created! The ID for it is `%s`.", suggestion.ID.Hex()))
 }

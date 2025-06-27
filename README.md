@@ -2,6 +2,10 @@
 
 nayuki is an easy to use discord suggestions bot written in go. to get started, simply add it to your server using [this link](https://discord.com/oauth2/authorize?client_id=1381268909226987630&permissions=395137000512&integration_type=0&scope=bot+applications.commands).
 
+<p align="center">
+    <img src="./assets/suggestion.png">
+</p>
+
 ## project setup
 
 to get started, you'll need:

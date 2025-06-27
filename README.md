@@ -1,4 +1,4 @@
-# nayuki
+# nayuki ![build](https://img.shields.io/github/actions/workflow/status/azurejelly/nayuki/go.yml?logo=github&logoColor=ffffff) ![docker](https://img.shields.io/docker/pulls/azurejelly/nayuki?logo=docker)
 
 nayuki is an easy to use discord suggestions bot written in go. it allows you to easily manage them, lets users in your server vote and even creates discussion threads. to get started, simply add it to your server using [this link](https://discord.com/oauth2/authorize?client_id=1381268909226987630&permissions=395137000512&integration_type=0&scope=bot+applications.commands).
 

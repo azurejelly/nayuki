@@ -1,14 +1,27 @@
+# git
 .gitignore
 .gitattributes
-*.DS_Store
-build/
-.env.example
-*.env
-*.md
 .github/
+
+# build
+build/
+nayuki
 *.exe
-desktop.ini
+
+# docker
 docker-compose.yml
 Dockerfile
-nayuki
+.dockerignore
+
+# env
+.env.example
+*.env
+
+# os-specific stuff
+desktop.ini
+*.DS_Store
+
+# readme/license/etc
 assets/
+*.md
+LICENSE

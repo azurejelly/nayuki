@@ -27,5 +27,5 @@ func (c *DeclineCommand) Command() *discordgo.ApplicationCommand {
 func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionCreate) error {
 	i := event.Interaction
 	id := i.ApplicationCommandData().GetOption("id").StringValue()
-	return helper.TakeSuggestionAction(s, i, id, "declined", utils.POSITIVE_EMBED_COLOR)
+	return helper.TakeSuggestionAction(s, i, id, "declined", utils.NEGATIVE_EMBED_COLOR)
 }

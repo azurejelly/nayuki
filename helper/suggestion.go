@@ -3,6 +3,7 @@ package helper
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/azurejelly/nayuki/database"
@@ -11,15 +12,18 @@ import (
 	embed "github.com/clinet/discordgo-embed"
 )
 
+// i dont really like the way this works but i cant think of anything else
 func TakeSuggestionAction(
 	s *discordgo.Session,
 	i *discordgo.Interaction,
 	id string,
+	response string,
 	verb string,
 	color int,
 ) error {
 	utils.Defer(s, i)
 
+	response = strings.TrimSpace(response)
 	suggestion, err := database.FindSuggestion(id)
 	if err != nil || suggestion == nil {
 		return utils.UpdateDeferred(s, i, ":x: Could not find a suggestion with that ID.")
@@ -44,7 +48,6 @@ func TakeSuggestionAction(
 	if err != nil {
 		result = fmt.Sprintf(":warning: The suggestion was %s, but the original message could not be fetched:\n```\n%s\n```", verb, err)
 	} else {
-		// Count likes and dislikes in the original message
 		likes = countReactions(msg, utils.LIKE_EMOJI)
 		dislikes = countReactions(msg, utils.DISLIKE_EMOJI)
 
@@ -68,26 +71,48 @@ func TakeSuggestionAction(
 		log.Println("could not delete original suggestion message:", err)
 	}
 
-	// TODO: make the embed a bit better
+	// Attempt to find user and guild
+	u, _ := s.User(suggestion.Author)
+	g, _ := s.Guild(server.Guild)
+
+	// If we can find both the user and guild, we can try to
+	// notify the user about their suggestion status via a DM
+	if u != nil && g != nil {
+		dm, err := s.UserChannelCreate(u.ID)
+		if err == nil {
+			notif := fmt.Sprintf("Hey **%s**, your suggestion `%s` on `%s` has been %s.", u.DisplayName(), suggestion.Title, g.Name, verb)
+
+			if response != "" {
+				notif += fmt.Sprintf(" From the reviewer: `%s`", response)
+			}
+
+			// We don't care if it fails
+			s.ChannelMessageSend(dm.ID, notif)
+		}
+	}
+
 	if server.LogsChannel != "" {
 		title := utils.Truncate(suggestion.Title, utils.MAX_TITLE_LENGTH)
 		content := utils.Truncate(suggestion.Content, utils.MAX_DESCRIPTION_LENGTH)
 
 		embed := embed.NewEmbed()
-		embed.SetAuthor(fmt.Sprintf("Suggestion %s!", verb))
+		embed.SetAuthor(fmt.Sprintf("Suggestion %s", verb))
 		embed.SetTitle(title)
 		embed.SetDescription(content)
 		embed.AddField("Likes", fmt.Sprintf(":thumbs_up: %d", likes))
 		embed.AddField("Dislikes", fmt.Sprintf(":thumbs_down: %d", dislikes))
-		embed.AddField("Reviewer", fmt.Sprintf("<@%s>", i.Member.User.ID))
-		embed.AddField("Suggested by", fmt.Sprintf("<@%s> (%s)", suggestion.Author, suggestion.AuthorName))
+		embed.InlineAllFields()
 		embed.SetFooter(fmt.Sprintf("ID: %s", suggestion.ID.Hex()))
 		embed.SetColor(color)
-		embed.InlineAllFields()
+		embed.AddField("Reviewer", fmt.Sprintf("%s (%s)", i.Member.User.Mention(), i.Member.User.Username))
+		embed.AddField("Suggested by", fmt.Sprintf("<@%s> (%s)", suggestion.Author, suggestion.AuthorName))
 
-		u, _ := s.User(suggestion.Author)
 		if u != nil {
 			embed.SetAuthor(embed.Author.Name, u.AvatarURL("1024"))
+		}
+
+		if response != "" || strings.TrimSpace(response) != "" {
+			embed.AddField("Reviewer Response", response)
 		}
 
 		embed.Timestamp = time.Now().Format(time.RFC3339)
@@ -97,6 +122,7 @@ func TakeSuggestionAction(
 	return utils.UpdateDeferred(s, i, result)
 }
 
+// Counts the amount of reactions given by users for a message.
 func countReactions(msg *discordgo.Message, name string) int {
 	counter := 0
 

@@ -20,6 +20,12 @@ func (c *DeclineCommand) Command() *discordgo.ApplicationCommand {
 				Description: "The ID of the suggestion.",
 				Required:    true,
 			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "response",
+				Description: "An optional response for the person who submitted the suggestion.",
+				Required:    false,
+			},
 		},
 	}
 }
@@ -27,5 +33,13 @@ func (c *DeclineCommand) Command() *discordgo.ApplicationCommand {
 func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionCreate) error {
 	i := event.Interaction
 	id := i.ApplicationCommandData().GetOption("id").StringValue()
-	return helper.TakeSuggestionAction(s, i, id, "declined", utils.NEGATIVE_EMBED_COLOR)
+	response := func() string {
+		if opt := i.ApplicationCommandData().GetOption("response"); opt != nil {
+			return opt.StringValue()
+		}
+
+		return ""
+	}()
+
+	return helper.TakeSuggestionAction(s, i, id, response, "declined", utils.NEGATIVE_EMBED_COLOR)
 }

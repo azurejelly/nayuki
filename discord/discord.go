@@ -32,13 +32,21 @@ func Init(token string) {
 	defer session.Close()
 
 	log.Printf("registering %d command(s)\n", len(commands.List))
+
+	guild := config.GetGuildId()
+	if guild != "" {
+		log.Println("only registering commands for guild", guild)
+	}
+
 	for _, c := range commands.List {
 		cmd := c.Command()
-		_, err := session.ApplicationCommandCreate(session.State.User.ID, config.GetGuildId(), cmd)
+
+		_, err = session.ApplicationCommandCreate(session.State.User.ID, guild, cmd)
 		if err != nil {
-			log.Fatalf("failed to register command %s\n", cmd.Name)
-			log.Fatalln(err)
+			log.Fatalf("failed to register command %s: %s", cmd.Name, err)
 			return
+		} else {
+			log.Println("registered command", cmd.Name)
 		}
 	}
 

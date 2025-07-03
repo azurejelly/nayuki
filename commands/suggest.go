@@ -73,13 +73,13 @@ func (c *SuggestCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 	embed.SetDescription(content)
 	embed.SetAuthor(i.Member.User.Username, i.Member.User.AvatarURL("128"))
 	embed.SetFooter(fmt.Sprintf("ID: %s", suggestion.ID.Hex()))
-	embed.SetColor(0xe28de3)
+	embed.SetColor(utils.DEFAULT_EMBED_COLOR)
 	embed.Timestamp = time.Now().Format(time.RFC3339)
 
 	s.ChannelMessageEditEmbed(channel, msg.ID, embed.MessageEmbed)
 	s.ChannelMessageEdit(channel, msg.ID, fmt.Sprintf("New suggestion from <@%s>:", i.Member.User.ID))
-	s.MessageReactionAdd(channel, msg.ID, "👍") // thumbs up
-	s.MessageReactionAdd(channel, msg.ID, "👎") // thumbs down
+	s.MessageReactionAdd(channel, msg.ID, utils.LIKE_EMOJI)
+	s.MessageReactionAdd(channel, msg.ID, utils.DISLIKE_EMOJI)
 
 	if server.CreateThreads {
 		thread := fmt.Sprintf("%s - %s", suggestion.ID.Hex(), title)

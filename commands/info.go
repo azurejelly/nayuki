@@ -43,7 +43,7 @@ func (c *InfoCommand) Run(s *discordgo.Session, event *discordgo.InteractionCrea
 	}
 
 	embed := embed.NewEmbed()
-	embed.SetColor(0xe28de3)
+	embed.SetColor(utils.DEFAULT_EMBED_COLOR)
 	embed.SetTitle("Information")
 	embed.SetDescription("Below you'll find some information about the current bot instance:")
 	embed.AddField(":computer: Processor", cpu)

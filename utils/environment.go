@@ -5,10 +5,6 @@ import (
 	"runtime/debug"
 )
 
-const (
-	GITHUB_REPOSITORY = "https://github.com/azurejelly/nayuki"
-)
-
 func ReadGitRevision() string {
 	hash := ""
 

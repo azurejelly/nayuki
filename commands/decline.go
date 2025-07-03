@@ -42,11 +42,13 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 
 	server, err := database.GetOrCreateServer(i.GuildID)
 	if err != nil {
+		log.Println("something went wrong while communicating with the database:", err)
 		return utils.UpdateDeferred(s, i, fmt.Sprintf(":x: Failed to fetch and/or create server data: ```\n%s\n```", err.Error()))
 	}
 
 	err = database.DeleteSuggestion(suggestion)
 	if err != nil {
+		log.Println("something went wrong while communicating with the database:", err)
 		return utils.UpdateDeferred(s, i, fmt.Sprintf(":x: Could not delete suggestion from database: ```\n%s\n```", err.Error()))
 	}
 
@@ -58,8 +60,8 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 		result = fmt.Sprintf(":warning: The suggestion was declined, but the original message could not be fetched:\n```\n%s\n```", err.Error())
 	} else {
 		// Count likes and dislikes in the original message
-		likes = utils.CountReactions(msg, "👍", true)
-		dislikes = utils.CountReactions(msg, "👎", true)
+		likes = utils.CountReactions(msg, utils.LIKE_EMOJI, true)
+		dislikes = utils.CountReactions(msg, utils.DISLIKE_EMOJI, true)
 
 		// Lock the original discussion thread, if available
 		if msg.Thread != nil {
@@ -94,7 +96,7 @@ func (c *DeclineCommand) Run(s *discordgo.Session, event *discordgo.InteractionC
 		embed.AddField("Declined by", fmt.Sprintf("<@%s>", i.Member.User.ID))
 		embed.AddField("Suggested by", fmt.Sprintf("<@%s> (%s)", suggestion.Author, suggestion.AuthorName))
 		embed.SetFooter(fmt.Sprintf("ID: %s", suggestion.ID.Hex()))
-		embed.SetColor(0xeb3731)
+		embed.SetColor(utils.NEGATIVE_EMBED_COLOR)
 		embed.InlineAllFields()
 
 		u, _ := s.User(suggestion.Author)

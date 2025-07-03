@@ -94,6 +94,15 @@ func TakeSuggestionAction(
 	if server.LogsChannel != "" {
 		title := utils.Truncate(suggestion.Title, utils.MAX_TITLE_LENGTH)
 		content := utils.Truncate(suggestion.Content, utils.MAX_DESCRIPTION_LENGTH)
+		ratio := func() string {
+			total := likes + dislikes
+			if total == 0 {
+				return "N/A"
+			}
+
+			r := (float64(likes) / float64(total)) * 100
+			return fmt.Sprintf("%.2f%%", r)
+		}()
 
 		embed := embed.NewEmbed()
 		embed.SetAuthor(fmt.Sprintf("Suggestion %s", verb))
@@ -101,6 +110,7 @@ func TakeSuggestionAction(
 		embed.SetDescription(content)
 		embed.AddField("Likes", fmt.Sprintf(":thumbs_up: %d", likes))
 		embed.AddField("Dislikes", fmt.Sprintf(":thumbs_down: %d", dislikes))
+		embed.AddField("Approval Rate", ratio)
 		embed.InlineAllFields()
 		embed.SetFooter(fmt.Sprintf("ID: %s", suggestion.ID.Hex()))
 		embed.SetColor(color)

@@ -4,11 +4,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-const (
-	MAX_TITLE_LENGTH       = 256
-	MAX_DESCRIPTION_LENGTH = 4096
-)
-
 func ReplyEmbed(s *discordgo.Session, i *discordgo.Interaction, embed *discordgo.MessageEmbed) error {
 	return s.InteractionRespond(i, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

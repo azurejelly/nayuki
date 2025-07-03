@@ -45,8 +45,8 @@ func TakeSuggestionAction(
 		result = fmt.Sprintf(":warning: The suggestion was %s, but the original message could not be fetched:\n```\n%s\n```", verb, err)
 	} else {
 		// Count likes and dislikes in the original message
-		likes = utils.CountReactions(msg, utils.LIKE_EMOJI, true)
-		dislikes = utils.CountReactions(msg, utils.DISLIKE_EMOJI, true)
+		likes = countReactions(msg, utils.LIKE_EMOJI)
+		dislikes = countReactions(msg, utils.DISLIKE_EMOJI)
 
 		// Lock the original discussion thread, if available
 		if msg.Thread != nil {
@@ -95,4 +95,29 @@ func TakeSuggestionAction(
 	}
 
 	return utils.UpdateDeferred(s, i, result)
+}
+
+func countReactions(msg *discordgo.Message, name string) int {
+	counter := 0
+
+	if msg == nil {
+		return counter
+	}
+
+	for _, r := range msg.Reactions {
+		if r.Emoji.Name == name {
+			counter += r.Count
+			break
+		}
+	}
+
+	if counter > 0 {
+		counter--
+	}
+
+	if counter < 0 {
+		counter = 0
+	}
+
+	return counter
 }
